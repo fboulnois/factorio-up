@@ -1,7 +1,7 @@
 #[derive(Debug)]
 pub enum RuntimeError {
     Io(std::io::Error),
-    Curl(curl::Error),
+    Ureq(ureq::Error),
 }
 
 pub type AppResult<T> = Result<T, RuntimeError>;
@@ -56,7 +56,7 @@ impl std::fmt::Display for RuntimeError {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
             Self::Io(err) => std::fmt::Display::fmt(err, f),
-            Self::Curl(err) => std::fmt::Display::fmt(err, f),
+            Self::Ureq(err) => std::fmt::Display::fmt(err, f),
         }
     }
 }
@@ -67,9 +67,9 @@ impl From<std::io::Error> for RuntimeError {
     }
 }
 
-impl From<curl::Error> for RuntimeError {
-    fn from(err: curl::Error) -> Self {
-        Self::Curl(err)
+impl From<ureq::Error> for RuntimeError {
+    fn from(err: ureq::Error) -> Self {
+        Self::Ureq(err)
     }
 }
 

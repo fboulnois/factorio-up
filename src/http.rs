@@ -1,48 +1,38 @@
-use curl::easy::Easy;
 use std::{
-    io::Write,
-    sync::{Arc, LazyLock, Mutex},
+    io::{Read, Write},
+    sync::LazyLock,
 };
 
-use crate::error::{AppResult, NotFoundExt};
+use ureq::{Agent, ResponseExt};
 
-static CURL: LazyLock<Arc<Mutex<Easy>>> = LazyLock::new(|| Arc::new(Mutex::new(Easy::new())));
+use crate::error::AppResult;
+
+static UREQ: LazyLock<Agent> = LazyLock::new(|| Agent::config_builder().build().into());
 
 pub fn get_redirect_url(url: &str) -> AppResult<String> {
-    let mut curl = CURL.lock().unwrap();
-    curl.url(url)?;
-    curl.perform()?;
-    Ok(curl
-        .redirect_url()?
-        .ok_or_not_found("no redirect url found")?
-        .to_string())
+    let response = UREQ.get(url).call()?;
+    Ok(response.get_uri().to_string())
 }
 
 pub fn fetch(url: &str) -> AppResult<Vec<u8>> {
-    let mut curl = CURL.lock().unwrap();
-    let mut hashes = Vec::new();
-    curl.url(url)?;
-    {
-        let mut transfer = curl.transfer();
-        transfer.write_function(|chunk| {
-            hashes.extend_from_slice(chunk);
-            Ok(chunk.len())
-        })?;
-        transfer.perform()?;
-    };
-    Ok(hashes)
+    let mut response = UREQ.get(url).call()?;
+    let mut bytes = Vec::new();
+    response.body_mut().as_reader().read_to_end(&mut bytes)?;
+    Ok(bytes)
 }
 
 pub fn fetch_file(url: &str, filename: &str) -> AppResult<()> {
-    let mut curl = CURL.lock().unwrap();
     let mut file = std::fs::File::create(filename)?;
-    curl.url(url)?;
-    {
-        curl.write_function(move |data| {
-            file.write_all(data).unwrap();
-            Ok(data.len())
-        })?;
-        curl.perform()?;
-    };
+    let mut response = UREQ.get(url).call()?;
+    let mut reader = response.body_mut().as_reader();
+    let mut buffer = [0; 1024 * 1024];
+    loop {
+        let n = reader.read(&mut buffer)?;
+        if n == 0 {
+            break;
+        }
+        file.write_all(&buffer[..n])?;
+    }
+    file.flush()?;
     Ok(())
 }

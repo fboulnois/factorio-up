@@ -40,3 +40,7 @@ Additional trailing options will be treated as a command with arguments to execu
 ```sh
 docker build . --tag factorio-up
 ```
+
+## Deploy
+
+See the [Dockerfile](https://github.com/fboulnois/factorio-docker/blob/main/Dockerfile) for a minimal example on how to deploy the executable in a container.

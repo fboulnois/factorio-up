@@ -1,4 +1,5 @@
 #![deny(unsafe_code)]
+#![doc = include_str!("../README.md")]
 
 mod args;
 mod error;

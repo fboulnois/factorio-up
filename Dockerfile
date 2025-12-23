@@ -5,9 +5,7 @@ FROM rust:1.81 AS env-build
 WORKDIR /srv
 COPY . /srv/
 
-# cache dependencies and objects and build binary
-RUN \
-  --mount=type=cache,id=cargo-cache,target=/usr/local/cargo/registry \
-  --mount=type=cache,id=cargo-cache,target=/srv/target \
-  cargo build --release \
-  && cp target/release/factorio-up /srv/factorio-up
+# build binary and verify checksum
+RUN cargo build --release \
+  && cp target/release/factorio-up /srv/factorio-up-glibc-amd64 \
+  && sha256sum factorio-up-glibc-amd64 > SHA256SUMS

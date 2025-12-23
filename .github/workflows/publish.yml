@@ -1,0 +1,53 @@
+name: Publish to GitHub and Crates.io
+on:
+  push:
+    tags:
+      - 'v[0-9]+.[0-9]+.[0-9]+'
+  workflow_dispatch:
+    inputs:
+      git_tag:
+        required: true
+        type: string
+env:
+  GIT_TAG: ${{ github.event.inputs.git_tag || github.ref_name }}
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v6
+        with:
+          ref: ${{ env.GIT_TAG }}
+      - name: Set up Rust toolchain
+        run: |
+          rustup install stable
+          rustup default stable
+      - name: Publish to Crates.io
+        run: cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+      - name: Build Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          load: true
+          tags: ${{ github.repository }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+      - name: Run Docker image
+        run: docker run --name temp ${{ github.repository }}
+      - name: Copy Docker container artifacts
+        run: |
+          mkdir -p bin
+          docker cp temp:/srv/factorio-up-glibc-amd64 ./bin/factorio-up-glibc-amd64
+          docker cp temp:/srv/SHA256SUMS ./bin/SHA256SUMS
+      - name: Upload the latest artifacts to releases
+        uses: ncipollo/release-action@v1
+        with:
+          allowUpdates: true
+          artifacts: "bin/*"
+          makeLatest: true
+          name: ${{ env.GIT_TAG }}
+          tag: ${{ env.GIT_TAG }}

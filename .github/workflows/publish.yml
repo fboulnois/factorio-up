@@ -16,9 +16,7 @@ jobs:
         with:
           ref: ${{ env.GIT_TAG }}
       - name: Set up Rust toolchain
-        run: |
-          rustup install stable
-          rustup default stable
+        uses: dtolnay/rust-toolchain@stable
       - name: Publish to Crates.io
         run: cargo publish --token ${{ secrets.CARGO_REGISTRY_TOKEN }}
       - name: Set up Docker Buildx

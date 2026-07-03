@@ -2,13 +2,10 @@ use std::os::unix::process::CommandExt;
 
 use crate::{
     args::Args,
-    error::{AppResult, NotFound},
+    error::{AppResult, InvalidData, NotFound},
 };
 
 pub fn init_map_settings(args: &Args, output_dir: &std::path::Path) -> AppResult<()> {
-    if !args.init_map() {
-        return Ok(());
-    }
     let save_file = args.save_file();
     if std::path::Path::new(save_file).exists() {
         eprintln!("{} already exists", save_file);
@@ -39,6 +36,17 @@ pub fn init_map_settings(args: &Args, output_dir: &std::path::Path) -> AppResult
         cmd.gid(user.gid());
     }
     let out = cmd.args(argv).output()?;
-    println!("{}", String::from_utf8_lossy(&out.stdout));
+    print!("{}", String::from_utf8_lossy(&out.stdout));
+    let stderr = String::from_utf8_lossy(&out.stderr);
+    if !stderr.is_empty() {
+        eprint!("{stderr}");
+    }
+    if !out.status.success() {
+        let error = format!(
+            "failed to initialize map settings: factorio exited with {}",
+            out.status
+        );
+        return Err(InvalidData::new(&error).into());
+    }
     Ok(())
 }

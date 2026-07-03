@@ -5,7 +5,6 @@ use crate::{
     args::Args,
     download::{fetch_factorio_archive, resolve_download},
     error::{AppResult, NotFoundExt},
-    exec, init,
 };
 
 fn extract_tar_xz(filename: &std::path::Path) -> AppResult<std::path::PathBuf> {
@@ -33,7 +32,7 @@ fn chown_output_dir(args: &Args, output_dir: &std::path::Path) -> AppResult<()> 
     Ok(())
 }
 
-pub fn run(args: &Args) -> AppResult<()> {
+pub fn run(args: &Args) -> AppResult<std::path::PathBuf> {
     let download = resolve_download()?;
     let archive = fetch_factorio_archive(&download)?;
     let output_dir = extract_tar_xz(&archive)?;
@@ -43,11 +42,5 @@ pub fn run(args: &Args) -> AppResult<()> {
         download.filename,
         output_dir.display()
     );
-    if args.init_map() {
-        init::init_map_settings(args, &output_dir)?;
-    }
-    if args.has_exec() {
-        exec::execute_user_command(args, &output_dir)?;
-    }
-    Ok(())
+    Ok(output_dir)
 }

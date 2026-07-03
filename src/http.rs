@@ -1,13 +1,20 @@
 use std::{
     io::{Read, Write},
     sync::LazyLock,
+    time::Duration,
 };
 
 use ureq::{Agent, ResponseExt};
 
 use crate::error::AppResult;
 
-static UREQ: LazyLock<Agent> = LazyLock::new(|| Agent::config_builder().build().into());
+static UREQ: LazyLock<Agent> = LazyLock::new(|| {
+    Agent::config_builder()
+        .timeout_connect(Some(Duration::from_secs(30)))
+        .timeout_recv_response(Some(Duration::from_secs(30)))
+        .build()
+        .into()
+});
 
 pub fn get_redirect_url(url: &str) -> AppResult<String> {
     let response = UREQ.get(url).call()?;

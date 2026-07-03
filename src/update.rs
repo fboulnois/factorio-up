@@ -58,7 +58,9 @@ pub fn run(args: &Args) -> AppResult<()> {
         output_dir.display()
     );
     symlink_exe_and_data(args, &output_dir)?;
-    init::init_map_settings(args, &output_dir)?;
+    if args.init_map() {
+        init::init_map_settings(args, &output_dir)?;
+    }
     exec::execute_user_command(args)?;
     Ok(())
 }

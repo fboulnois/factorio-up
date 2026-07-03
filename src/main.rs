@@ -6,6 +6,7 @@ mod download;
 mod error;
 mod hash;
 mod http;
+mod init;
 mod update;
 mod user;
 

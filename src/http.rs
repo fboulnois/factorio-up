@@ -16,20 +16,20 @@ static UREQ: LazyLock<Agent> = LazyLock::new(|| {
         .into()
 });
 
-pub fn get_redirect_url(url: &str) -> AppResult<String> {
+pub fn get_resolved_url(url: &str) -> AppResult<String> {
     let response = UREQ.get(url).call()?;
     Ok(response.get_uri().to_string())
 }
 
-pub fn fetch(url: &str) -> AppResult<Vec<u8>> {
+pub fn fetch_bytes(url: &str) -> AppResult<Vec<u8>> {
     let mut response = UREQ.get(url).call()?;
     let mut bytes = Vec::new();
     response.body_mut().as_reader().read_to_end(&mut bytes)?;
     Ok(bytes)
 }
 
-pub fn fetch_file(url: &str, filename: &str) -> AppResult<()> {
-    let mut file = std::fs::File::create(filename)?;
+pub fn fetch_file(url: &str, path: impl AsRef<std::path::Path>) -> AppResult<()> {
+    let mut file = std::fs::File::create(path)?;
     let mut response = UREQ.get(url).call()?;
     let mut reader = response.body_mut().as_reader();
     let mut buffer = [0; 1024 * 1024];

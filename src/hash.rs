@@ -45,14 +45,18 @@ fn sha256_digest<R: std::io::Read>(mut reader: R) -> AppResult<String> {
     Ok(digest.checksum())
 }
 
-pub fn sha256_digest_file(path: &str) -> AppResult<String> {
+fn sha256_digest_file(path: impl AsRef<std::path::Path>) -> AppResult<String> {
     let file = std::fs::File::open(path)?;
     sha256_digest(file)
 }
 
-pub fn verify_file_hash(filename: &str, hash: &str) -> AppResult<()> {
-    let sha256 = sha256_digest_file(filename)?;
-    if hash != sha256 {
+pub fn verify_file_hash(path: impl AsRef<std::path::Path>, hash: &str) -> AppResult<bool> {
+    let sha256 = sha256_digest_file(path)?;
+    Ok(sha256 == hash)
+}
+
+pub fn assert_file_hash(path: impl AsRef<std::path::Path>, hash: &str) -> AppResult<()> {
+    if !verify_file_hash(path, hash)? {
         let error = InvalidData::new("file hash does not match");
         return Err(error.into());
     }

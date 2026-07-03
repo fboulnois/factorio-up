@@ -5,12 +5,11 @@ use xz2::read::XzDecoder;
 
 use crate::{
     args::Args,
-    download::{self},
+    download::{fetch_factorio_archive, resolve_download},
     error::{AppResult, NotFound},
-    http,
 };
 
-fn extract_tar_xz(filename: &str) -> AppResult<std::path::PathBuf> {
+fn extract_tar_xz(filename: &std::path::Path) -> AppResult<std::path::PathBuf> {
     let file = std::fs::File::open(filename)?;
     let xz = XzDecoder::new(file);
     let mut archive = Archive::new(xz);
@@ -103,13 +102,15 @@ fn execute_user_command(args: &Args) -> AppResult<()> {
 }
 
 pub fn run(args: &Args) -> AppResult<()> {
-    let url = http::get_redirect_url(download::REDIRECT_URL)?;
-    let filename = download::parse_download_filename(&url)?;
-    let hash = download::fetch_checksum(&filename)?;
-    download::fetch_factorio_archive(&url, &filename, &hash)?;
-    let output_dir = extract_tar_xz(&filename)?;
+    let download = resolve_download()?;
+    let archive = fetch_factorio_archive(&download)?;
+    let output_dir = extract_tar_xz(&archive)?;
     chown_output_dir(args, &output_dir)?;
-    println!("{} extracted to {}", filename, output_dir.display());
+    println!(
+        "{} extracted to {}",
+        download.filename,
+        output_dir.display()
+    );
     symlink_exe_and_data(args, &output_dir)?;
     init_map_settings(args, &output_dir)?;
     execute_user_command(args)?;

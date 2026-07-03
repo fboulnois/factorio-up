@@ -4,6 +4,7 @@
 mod args;
 mod download;
 mod error;
+mod exec;
 mod hash;
 mod http;
 mod init;

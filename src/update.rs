@@ -1,5 +1,3 @@
-use std::os::unix::process::CommandExt;
-
 use tar::Archive;
 use xz2::read::XzDecoder;
 
@@ -7,7 +5,7 @@ use crate::{
     args::Args,
     download::{fetch_factorio_archive, resolve_download},
     error::{AppResult, NotFoundExt},
-    init,
+    exec, init,
 };
 
 fn extract_tar_xz(filename: &std::path::Path) -> AppResult<std::path::PathBuf> {
@@ -49,22 +47,6 @@ fn symlink_exe_and_data(args: &Args, output_dir: &std::path::Path) -> AppResult<
     Ok(())
 }
 
-fn execute_user_command(args: &Args) -> AppResult<()> {
-    let exec = args.exec();
-    if exec.is_empty() {
-        return Ok(());
-    }
-    let exe = exec.first().unwrap().to_string();
-    let argv = exec.into_iter().skip(1).collect::<Vec<&str>>();
-    let mut cmd = std::process::Command::new(exe);
-    if let Some(user) = args.user() {
-        cmd.uid(user.uid());
-        cmd.gid(user.gid());
-    }
-    let error = cmd.args(argv).exec();
-    Err(error.into())
-}
-
 pub fn run(args: &Args) -> AppResult<()> {
     let download = resolve_download()?;
     let archive = fetch_factorio_archive(&download)?;
@@ -77,6 +59,6 @@ pub fn run(args: &Args) -> AppResult<()> {
     );
     symlink_exe_and_data(args, &output_dir)?;
     init::init_map_settings(args, &output_dir)?;
-    execute_user_command(args)?;
+    exec::execute_user_command(args)?;
     Ok(())
 }

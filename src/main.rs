@@ -13,5 +13,12 @@ mod user;
 
 fn main() -> error::AppResult<()> {
     let args = args::Args::new();
-    update::run(&args)
+    let extract_dir = update::run(&args)?;
+    if args.init_map() {
+        init::init_map_settings(&args, &extract_dir)?;
+    }
+    if args.has_exec() {
+        exec::execute_user_command(&args, &extract_dir)?;
+    }
+    Ok(())
 }

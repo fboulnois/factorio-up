@@ -10,8 +10,6 @@ pub struct Args {
     save_file: String,
     map_gen_settings: String,
     map_settings: String,
-    exe_path: Option<String>,
-    data_dir: Option<String>,
     user: Option<User>,
     exec: Vec<String>,
 }
@@ -48,18 +46,6 @@ impl Args {
                     .value_parser(NonEmptyStringValueParser::new()),
             )
             .arg(
-                Arg::new("exe_path")
-                    .long("exe-path")
-                    .help("File path to symlink the downloaded server binary")
-                    .value_parser(NonEmptyStringValueParser::new()),
-            )
-            .arg(
-                Arg::new("data_dir")
-                    .long("data-dir")
-                    .help("Directory to symlink the downloaded server data")
-                    .value_parser(NonEmptyStringValueParser::new()),
-            )
-            .arg(
                 Arg::new("user")
                     .long("user")
                     .help("Run the command as this user")
@@ -86,8 +72,6 @@ impl Args {
                 .unwrap()
                 .to_string(),
             map_settings: args.get_one::<String>("map_settings").unwrap().to_string(),
-            exe_path: args.get_one("exe_path").cloned(),
-            data_dir: args.get_one("data_dir").cloned(),
             user: args.get_one::<User>("user").cloned(),
             exec: args
                 .get_many("exec")
@@ -113,19 +97,15 @@ impl Args {
         &self.map_settings
     }
 
-    pub fn exe_path(&self) -> Option<&str> {
-        self.exe_path.as_deref()
-    }
-
-    pub fn data_dir(&self) -> Option<&str> {
-        self.data_dir.as_deref()
-    }
-
     pub fn user(&self) -> Option<User> {
         self.user.clone()
     }
 
     pub fn exec(&self) -> Vec<&str> {
         self.exec.iter().map(|s| s.as_str()).collect()
+    }
+
+    pub fn has_exec(&self) -> bool {
+        !self.exec.is_empty()
     }
 }

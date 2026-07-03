@@ -33,20 +33,6 @@ fn chown_output_dir(args: &Args, output_dir: &std::path::Path) -> AppResult<()> 
     Ok(())
 }
 
-fn symlink_exe_and_data(args: &Args, output_dir: &std::path::Path) -> AppResult<()> {
-    if let Some(dir) = args.exe_path() {
-        let orig = output_dir.join("bin/x64/factorio");
-        let link = std::path::Path::new(dir);
-        std::os::unix::fs::symlink(orig, link)?;
-    }
-    if let Some(dir) = args.data_dir() {
-        let orig = output_dir.join("data");
-        let link = std::path::Path::new(dir);
-        std::os::unix::fs::symlink(orig, link)?;
-    }
-    Ok(())
-}
-
 pub fn run(args: &Args) -> AppResult<()> {
     let download = resolve_download()?;
     let archive = fetch_factorio_archive(&download)?;
@@ -57,10 +43,11 @@ pub fn run(args: &Args) -> AppResult<()> {
         download.filename,
         output_dir.display()
     );
-    symlink_exe_and_data(args, &output_dir)?;
     if args.init_map() {
         init::init_map_settings(args, &output_dir)?;
     }
-    exec::execute_user_command(args)?;
+    if args.has_exec() {
+        exec::execute_user_command(args, &output_dir)?;
+    }
     Ok(())
 }

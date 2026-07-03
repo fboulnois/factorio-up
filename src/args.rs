@@ -1,6 +1,6 @@
 use clap::{
-    builder::{BoolishValueParser, NonEmptyStringValueParser, TypedValueParser},
     Arg, ArgAction, Command,
+    builder::{BoolishValueParser, NonEmptyStringValueParser, TypedValueParser},
 };
 
 use crate::user::User;

@@ -6,20 +6,23 @@ use xz2::read::XzDecoder;
 use crate::{
     args::Args,
     download::{fetch_factorio_archive, resolve_download},
-    error::{AppResult, NotFound},
+    error::{AppResult, NotFound, NotFoundExt},
 };
 
 fn extract_tar_xz(filename: &std::path::Path) -> AppResult<std::path::PathBuf> {
+    let version_dir = filename
+        .parent()
+        .and_then(std::path::Path::parent)
+        .ok_or_not_found("archive path not found")?;
+
+    let extract_dir = version_dir.join("factorio");
+
     let file = std::fs::File::open(filename)?;
     let xz = XzDecoder::new(file);
     let mut archive = Archive::new(xz);
-    let epoch = std::time::SystemTime::now()
-        .duration_since(std::time::UNIX_EPOCH)
-        .unwrap()
-        .as_millis();
-    let dest = std::env::temp_dir().join(format!("factorio-{}", epoch));
-    archive.unpack(dest.clone())?;
-    Ok(dest.join("factorio"))
+    archive.unpack(version_dir)?;
+
+    Ok(extract_dir)
 }
 
 fn chown_output_dir(args: &Args, output_dir: &std::path::Path) -> AppResult<()> {
@@ -27,8 +30,6 @@ fn chown_output_dir(args: &Args, output_dir: &std::path::Path) -> AppResult<()> 
         let uid = Some(user.uid());
         let gid = Some(user.gid());
         std::os::unix::fs::chown(output_dir, uid, gid)?;
-        // default to the user write data path instead of the system path
-        std::fs::remove_file(output_dir.join("config-path.cfg"))?;
     }
     Ok(())
 }

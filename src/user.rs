@@ -9,11 +9,8 @@ impl User {
         Self { uid, gid }
     }
 
-    pub fn as_user(name: Option<String>) -> Option<Self> {
-        match name {
-            Some(username) => get_user_by_name(&username),
-            None => None,
-        }
+    pub fn from_name(name: &str) -> Result<Self, String> {
+        get_user_by_name(name).ok_or_else(|| format!("user '{name}' not found"))
     }
 
     pub fn uid(&self) -> u32 {

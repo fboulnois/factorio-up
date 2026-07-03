@@ -1,5 +1,5 @@
 use clap::{
-    builder::{BoolishValueParser, NonEmptyStringValueParser},
+    builder::{BoolishValueParser, NonEmptyStringValueParser, TypedValueParser},
     Arg, ArgAction, Command,
 };
 
@@ -63,7 +63,10 @@ impl Args {
                 Arg::new("user")
                     .long("user")
                     .help("Run the command as this user")
-                    .value_parser(NonEmptyStringValueParser::new()),
+                    .value_parser(
+                        NonEmptyStringValueParser::new()
+                            .try_map(|name| User::from_name(name.as_str())),
+                    ),
             )
             .arg(
                 Arg::new("exec")
@@ -85,7 +88,7 @@ impl Args {
             map_settings: args.get_one::<String>("map_settings").unwrap().to_string(),
             exe_path: args.get_one("exe_path").cloned(),
             data_dir: args.get_one("data_dir").cloned(),
-            user: User::as_user(args.get_one("user").cloned()),
+            user: args.get_one::<User>("user").cloned(),
             exec: args
                 .get_many("exec")
                 .unwrap_or_default()

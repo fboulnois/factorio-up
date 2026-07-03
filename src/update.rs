@@ -5,35 +5,10 @@ use xz2::read::XzDecoder;
 
 use crate::{
     args::Args,
-    error::{AppResult, NotFound, NotFoundExt},
-    hash, http,
+    download::{self},
+    error::{AppResult, NotFound},
+    http,
 };
-
-static REDIRECT_URL: &str = "https://factorio.com/get-download/stable/headless/linux64";
-static CHECKSUM_URL: &str = "https://www.factorio.com/download/sha256sums/";
-
-fn parse_download_filename(url: &str) -> AppResult<String> {
-    let filename = url.split('/').next_back().ok_or_not_found("no '/' found")?;
-    let filename = filename.split('?').next().ok_or_not_found("no '?' found")?;
-    Ok(filename.to_string())
-}
-
-fn fetch_checksum(filename: &str) -> AppResult<String> {
-    let hashes = http::fetch(CHECKSUM_URL)?;
-    let sha256 = hash::find_file_hash(filename, hashes)?;
-    Ok(sha256)
-}
-
-fn fetch_factorio_archive(url: &str, filename: &str, hash: &str) -> AppResult<()> {
-    let path = std::path::Path::new(filename);
-    if !path.exists() {
-        http::fetch_file(url, filename)?;
-    } else {
-        eprintln!("{} already exists", filename);
-    }
-    hash::verify_file_hash(filename, hash)?;
-    Ok(())
-}
 
 fn extract_tar_xz(filename: &str) -> AppResult<std::path::PathBuf> {
     let file = std::fs::File::open(filename)?;
@@ -128,10 +103,10 @@ fn execute_user_command(args: &Args) -> AppResult<()> {
 }
 
 pub fn run(args: &Args) -> AppResult<()> {
-    let url = http::get_redirect_url(REDIRECT_URL)?;
-    let filename = parse_download_filename(&url)?;
-    let hash = fetch_checksum(&filename)?;
-    fetch_factorio_archive(&url, &filename, &hash)?;
+    let url = http::get_redirect_url(download::REDIRECT_URL)?;
+    let filename = download::parse_download_filename(&url)?;
+    let hash = download::fetch_checksum(&filename)?;
+    download::fetch_factorio_archive(&url, &filename, &hash)?;
     let output_dir = extract_tar_xz(&filename)?;
     chown_output_dir(args, &output_dir)?;
     println!("{} extracted to {}", filename, output_dir.display());

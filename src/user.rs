@@ -22,6 +22,7 @@ impl User {
     }
 }
 
+#[allow(unsafe_code, reason = "getpwnam_r requires an unsafe extern block")]
 mod libc {
     use std::ffi::{c_char, c_int};
 
@@ -36,7 +37,7 @@ mod libc {
         pub pw_shell: *mut c_char,
     }
 
-    extern "C" {
+    unsafe extern "C" {
         pub fn getpwnam_r(
             name: *const c_char,
             pwd: *mut Passwd,
@@ -47,7 +48,7 @@ mod libc {
     }
 }
 
-#[allow(unsafe_code)]
+#[allow(unsafe_code, reason = "getpwnam_r requires FFI pointer handling")]
 fn get_user_by_name(username: &str) -> Option<User> {
     let username = std::ffi::CString::new(username.as_bytes()).ok()?;
 

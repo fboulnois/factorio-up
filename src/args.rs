@@ -6,6 +6,7 @@ use clap::{
 use crate::user::User;
 
 pub struct Args {
+    experimental: bool,
     init_map: bool,
     save_file: String,
     map_gen_settings: String,
@@ -17,6 +18,12 @@ pub struct Args {
 impl Args {
     pub fn new() -> Self {
         let args = Command::new("factorio-up")
+            .arg(
+                Arg::new("experimental")
+                    .long("experimental")
+                    .help("Download the latest experimental version of Factorio instead of stable")
+                    .action(ArgAction::SetTrue),
+            )
             .arg(
                 Arg::new("init_map")
                     .long("init-map")
@@ -64,6 +71,7 @@ impl Args {
             .get_matches();
 
         Self {
+            experimental: args.get_flag("experimental"),
             init_map: args.get_flag("init_map"),
             save_file: args.get_one::<String>("save_file").unwrap().to_string(),
             map_gen_settings: args
@@ -78,6 +86,10 @@ impl Args {
                 .map(|s: &String| s.to_string())
                 .collect(),
         }
+    }
+
+    pub fn experimental(&self) -> bool {
+        self.experimental
     }
 
     pub fn init_map(&self) -> bool {

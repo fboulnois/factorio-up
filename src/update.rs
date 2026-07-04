@@ -33,7 +33,7 @@ fn chown_output_dir(args: &Args, output_dir: &std::path::Path) -> AppResult<()> 
 }
 
 pub fn run(args: &Args) -> AppResult<std::path::PathBuf> {
-    let download = resolve_download()?;
+    let download = resolve_download(args.experimental())?;
     let archive = fetch_factorio_archive(&download)?;
     let output_dir = extract_tar_xz(&archive)?;
     chown_output_dir(args, &output_dir)?;

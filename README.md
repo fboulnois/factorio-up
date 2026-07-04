@@ -24,7 +24,7 @@ Running the command without any options will download the latest stable version 
 
 | Option | Description |
 | ------ | ----------- |
-| `--init-map <init_map>` | Initialize the map settings [default: false] |
+| `--init-map` | Initialize the map settings [default: no] |
 | `--save-file <save_file>` | File path to the save .zip [default: server-default.zip] |
 | `--map-gen-settings <map_gen_settings>` | File path to the map generator settings [default: map-gen-settings.json] |
 | `--map-settings <map_settings>` | File path to the map settings [default: map-settings.json] |

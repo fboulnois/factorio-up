@@ -1,6 +1,6 @@
 use clap::{
     Arg, ArgAction, Command,
-    builder::{BoolishValueParser, NonEmptyStringValueParser, TypedValueParser},
+    builder::{NonEmptyStringValueParser, TypedValueParser},
 };
 
 use crate::user::User;
@@ -21,8 +21,7 @@ impl Args {
                 Arg::new("init_map")
                     .long("init-map")
                     .help("Initialize the map settings")
-                    .default_value("false")
-                    .value_parser(BoolishValueParser::new()),
+                    .action(ArgAction::SetTrue),
             )
             .arg(
                 Arg::new("save_file")
@@ -65,7 +64,7 @@ impl Args {
             .get_matches();
 
         Self {
-            init_map: *args.get_one("init_map").unwrap(),
+            init_map: args.get_flag("init_map"),
             save_file: args.get_one::<String>("save_file").unwrap().to_string(),
             map_gen_settings: args
                 .get_one::<String>("map_gen_settings")

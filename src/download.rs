@@ -3,7 +3,7 @@ use crate::{
     hash, http,
 };
 
-static REDIRECT_URL: &str = "https://factorio.com/get-download/stable/headless/linux64";
+static REDIRECT_URL_BASE: &str = "https://factorio.com/get-download";
 static CHECKSUM_URL: &str = "https://www.factorio.com/download/sha256sums/";
 
 pub struct DownloadInfo {
@@ -39,8 +39,14 @@ fn fetch_checksum(filename: &str) -> AppResult<String> {
     Ok(sha256)
 }
 
-pub fn resolve_download() -> AppResult<DownloadInfo> {
-    let url = http::get_resolved_url(REDIRECT_URL)?;
+pub fn resolve_download(experimental: bool) -> AppResult<DownloadInfo> {
+    let channel = if experimental {
+        "experimental"
+    } else {
+        "stable"
+    };
+    let redirect_url = format!("{REDIRECT_URL_BASE}/{channel}/headless/linux64");
+    let url = http::get_resolved_url(&redirect_url)?;
     let filename = parse_download_filename(&url)?;
     let version = parse_download_version(&filename)?;
     let hash = fetch_checksum(&filename)?;

@@ -1,10 +1,10 @@
 # factorio-up
 
-A single executable to download and run the latest stable version of Factorio headless server, optimized for containers.
+A single executable to download and run the latest stable or experimental version of Factorio headless server, optimized for containers.
 
 ## Features
 
-- Downloads the latest stable version of Factorio headless server and verifies the checksum
+- Downloads the latest stable or experimental version of Factorio headless server and verifies the checksum
 - Extracts the downloaded archive into a versioned cache directory
 - (optional) Initializes a map with custom settings
 - (optional) Runs the command as a specific user
@@ -24,6 +24,7 @@ Running the command without any options will download the latest stable version 
 
 | Option | Description |
 | ------ | ----------- |
+| `--experimental` | Download the latest experimental version of Factorio instead of stable [default: no] |
 | `--init-map` | Initialize the map settings [default: no] |
 | `--save-file <save_file>` | File path to the save .zip [default: server-default.zip] |
 | `--map-gen-settings <map_gen_settings>` | File path to the map generator settings [default: map-gen-settings.json] |
